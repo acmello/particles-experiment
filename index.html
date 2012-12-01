@@ -1,66 +1,88 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Particles-experiment by acmello</title>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Particles system</title>
+	<style type="text/css">
+		canvas {
+			border: 1px solid black;
+			background: black;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas" width="200" height="300"></canvas>
+	<script type="text/javascript">
+		(function(){
+			var canvas = document.querySelector('canvas')
+				, ctx = canvas.getContext('2d');
 
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-  </head>
-  <body>
-    <div class="wrapper">
-      <header>
-        <h1>Particles-experiment</h1>
-        <p>Some of the awesome effects we can create using canvas to simulate a particle system. </p>
+			canvas.width  = window.innerWidth;
+			canvas.height = window.innerHeight;
+ 			
+			var particles = [];
+			var mouse = {};
 
-        <p class="view"><a href="https://github.com/acmello/particles-experiment">View the Project on GitHub <small>acmello/particles-experiment</small></a></p>
+			function Particle(){
+				if(mouse.x && mouse.y)
+					this.position = { x: mouse.x, y: mouse.y };
+				else 
+					this.position = { x: canvas.width / 2, y: canvas.height / 2 };
 
+				this.speed = { x: -2.5+Math.random()*5, y: -15+Math.random()*5 };
+				this.radius = 10+Math.random()*20;
+				this.life = 10+Math.random()*20;
+				this.remaining_life = this.life;
+				this.r = Math.round(Math.random() * 255);
+				this.g = Math.round(Math.random() * 255);
+				this.b = Math.round(Math.random() * 255);
+			}
 
-        <ul>
-          <li><a href="https://github.com/acmello/particles-experiment/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/acmello/particles-experiment/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/acmello/particles-experiment">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
-        <h3>Welcome to GitHub Pages.</h3>
+			for(var p = 0; p < 40; p++){
+				particles.push(new Particle());
+			}
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+			canvas.addEventListener('mousemove', function(e){
+				mouse.x = e.pageX;
+				mouse.y = e.pageY;
+			}, false);
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+			function draw() {
+				ctx.globalCompositeOperation = 'lighter';
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				for(var i = 0, l = particles.length; i < l; i++){
+					var p = particles[i];
+					ctx.beginPath();
+					p.opacity = Math.round(p.remaining_life/p.life * 100)/100;
+					ctx.fillStyle = 'rgba(255, 255, 255,'+ p.opacity+')';
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+					var gradient = ctx.createRadialGradient(p.position.x, p.position.y, 0, p.position.x, p.position.y, p.radius);
 
-<h3>Designer Templates</h3>
+					gradient.addColorStop(0, 'rgba('+p.r+','+p.g+','+p.b+','+p.opacity+')');
+					gradient.addColorStop(0.5, 'rgba('+p.r+','+p.g+','+p.b+','+p.opacity+')');
+					gradient.addColorStop(1, 'rgba('+p.r+','+p.g+','+p.b+','+p.opacity+')');
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+					ctx.fillStyle = gradient;
 
-<h3>Rather Drive Stick?</h3>
+					ctx.arc(p.position.x, p.position.y, p.radius, Math.PI * 2, false);
+					ctx.closePath();
+					ctx.fill();
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+					p.position.x += p.speed.x;
+					p.position.y += p.speed.y;
+				
+					p.remaining_life--;
+					p.radius--;
 
-<h3>Authors and Contributors</h3>
+					if(p.remaining_life < 0 || p.radius < 0) {
+						particles[i] = new Particle();
+					}
+				}
+			}
+			
+			setInterval(draw, 1000 / 60);
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-      </section>
-      <footer>
-        <p>This project is maintained by <a href="https://github.com/acmello">acmello</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
-      </footer>
-    </div>
-    <script src="javascripts/scale.fix.js"></script>
-    
-  </body>
+		})();
+	</script>
+</body>
 </html>
