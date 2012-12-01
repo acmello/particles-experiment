@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Particles system</title>
+	<style type="text/css">
+		canvas {
+			border: 1px solid black;
+			background: black;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas" width="200" height="300"></canvas>
+	<script type="text/javascript">
+		(function(){
+			var canvas = document.querySelector('canvas')
+				, ctx = canvas.getContext('2d');
+
+			canvas.width  = window.innerWidth;
+			canvas.height = window.innerHeight;
+ 			
+			var particles = [];
+			var mouse = {};
+
+			function Particle(){
+				if(mouse.x && mouse.y)
+					this.position = { x: mouse.x, y: mouse.y };
+				else 
+					this.position = { x: canvas.width / 2, y: canvas.height / 2 };
+
+				this.speed = { x: -2.5+Math.random()*5, y: -15+Math.random()*5 };
+				this.radius = 10+Math.random()*20;
+				this.life = 10+Math.random()*20;
+				this.remaining_life = this.life;
+				this.r = Math.round(Math.random() * 255);
+				this.g = Math.round(Math.random() * 255);
+				this.b = Math.round(Math.random() * 255);
+			}
+
+			for(var p = 0; p < 40; p++){
+				particles.push(new Particle());
+			}
+
+			canvas.addEventListener('mousemove', function(e){
+				mouse.x = e.pageX;
+				mouse.y = e.pageY;
+			}, false);
+
+			function draw() {
+				ctx.globalCompositeOperation = 'lighter';
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				for(var i = 0, l = particles.length; i < l; i++){
+					var p = particles[i];
+					ctx.beginPath();
+					p.opacity = Math.round(p.remaining_life/p.life * 100)/100;
+					ctx.fillStyle = 'rgba(255, 255, 255,'+ p.opacity+')';
+
+					var gradient = ctx.createRadialGradient(p.position.x, p.position.y, 0, p.position.x, p.position.y, p.radius);
+
+					gradient.addColorStop(0, 'rgba('+p.r+','+p.g+','+p.b+','+p.opacity+')');
+					gradient.addColorStop(0.5, 'rgba('+p.r+','+p.g+','+p.b+','+p.opacity+')');
+					gradient.addColorStop(1, 'rgba('+p.r+','+p.g+','+p.b+','+p.opacity+')');
+
+					ctx.fillStyle = gradient;
+
+					ctx.arc(p.position.x, p.position.y, p.radius, Math.PI * 2, false);
+					ctx.closePath();
+					ctx.fill();
+
+					p.position.x += p.speed.x;
+					p.position.y += p.speed.y;
+				
+					p.remaining_life--;
+					p.radius--;
+
+					if(p.remaining_life < 0 || p.radius < 0) {
+						particles[i] = new Particle();
+					}
+				}
+			}
+			
+			setInterval(draw, 1000 / 60);
+
+		})();
+	</script>
+</body>
+</html>
